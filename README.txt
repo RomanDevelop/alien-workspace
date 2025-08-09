@@ -1,28 +1,32 @@
-REMIX DEFAULT WORKSPACE
+ALIEN Token and Presale — Quick Reference
 
-Remix default workspace is present when:
-i. Remix loads for the very first time 
-ii. A new workspace is created with 'Default' template
-iii. There are no files existing in the File Explorer
+This workspace contains the primary contracts for an ALIEN token and its ETH presale, as well as default Remix examples.
 
-This workspace contains 3 directories:
+Primary contracts
+- ALIEN.sol → ALIEN_V2: managed ERC‑20‑like token with pause and blacklist
+  - name: ALIEN Token, symbol: ALIEN, decimals: 18
+  - initial total supply: 1,000,000,000 × 10^18 assigned to initialOwner
+  - owner controls: mint, burnFrom, pause/unpause, blacklist
+- AlienPresale.sol → AlienPresale: ETH presale with post‑sale claiming
+  - parameters: token, startTime, endTime, hardCap (wei), tokenPrice (wei per token)
+  - buyers send ETH during [start, end] and claim tokens after end
+  - owner can withdraw raised ETH and unsold tokens after end
 
-1. 'contracts': Holds three contracts with increasing levels of complexity.
-2. 'scripts': Contains four typescript files to deploy a contract. It is explained below.
-3. 'tests': Contains one Solidity test file for 'Ballot' contract & one JS test file for 'Storage' contract.
+Dependencies
+- Solidity ^0.8.19
+- OpenZeppelin contracts v5.x (`Ownable`, `Pausable`, `ReentrancyGuard`, `IERC20`)
 
-SCRIPTS
+Presale flow
+1) Deploy ALIEN_V2(initialOwner)
+2) Deploy AlienPresale(token, startTime, endTime, hardCap, tokenPrice)
+3) Fund presale with enough ALIEN tokens (transfer to the presale contract)
+4) Buyers call buyTokens() or send ETH directly to the presale address
+5) After endTime: buyers claimTokens(); owner withdraws funds and unsold tokens
 
-The 'scripts' folder has four typescript files which help to deploy the 'Storage' contract using 'web3.js' and 'ethers.js' libraries.
+Remix scripts (optional)
+- scripts/deploy_with_ethers.ts and scripts/deploy_with_web3.ts are Remix‑oriented and use Remix globals.
 
-For the deployment of any other contract, just update the contract name from 'Storage' to the desired contract and provide constructor arguments accordingly 
-in the file `deploy_with_ethers.ts` or  `deploy_with_web3.ts`
-
-In the 'tests' folder there is a script containing Mocha-Chai unit tests for 'Storage' contract.
-
-To run a script, right click on file name in the file explorer and click 'Run'. Remember, Solidity file must already be compiled.
-Output from script will appear in remix terminal.
-
-Please note, require/import is supported in a limited manner for Remix supported modules.
-For now, modules supported by Remix are ethers, web3, swarmgw, chai, multihashes, remix and hardhat only for hardhat.ethers object/plugin.
-For unsupported modules, an error like this will be thrown: '<module_name> module require is not supported by Remix IDE' will be shown.
+Notes
+- Token is centralized (owner can mint/burnFrom/pause/blacklist)
+- Approve/allowance race condition applies; recommend setting allowance to 0 before updating to a new non‑zero value
+- Presale requires the owner to pre‑fund the contract with tokens before claims
